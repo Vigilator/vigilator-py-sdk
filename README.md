@@ -82,3 +82,7 @@ git push --follow-tags
 While the project is on major version `0`, breaking changes bump the minor version instead of the major version (`major_version_zero` is enabled).
 
 2. Create a [new release](https://github.com/vigilator/vigilator-py-sdk/releases/new) on Github from the pushed tag.
+
+## Generating Models
+
+To generate pydatnic models run ``poe regen``, expected that ``http://localhost:3000/api/spec.json`` is available. Use ``https://vigilator.ai/api/spec.json`` as alternative.

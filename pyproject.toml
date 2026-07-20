@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = ["pydantic>=2.13.4"]
 
 [project.urls]
 Homepage = "https://vigilator.github.io/vigilator-py-sdk/"
@@ -32,6 +33,8 @@ dev = [
     "ty>=0.0.24",
     "pytest-cov>=7.0.0",
     "ruff>=0.15.7",
+    "datamodel-code-generator[http]>=0.69.0",
+    "poethepoet>=0.48.0",
 ]
 
 [build-system]
@@ -52,6 +55,7 @@ testpaths = ["tests"]
 target-version = "py310"
 line-length = 120
 fix = true
+extend-exclude = ["models.py"]
 
 [tool.ruff.lint]
 select = [
@@ -74,7 +78,8 @@ select = [
     # mccabe
     "C90",
     # pycodestyle
-    "E", "W",
+    "E",
+    "W",
     # pyflakes
     "F",
     # pygrep-hooks
@@ -85,6 +90,8 @@ select = [
     "RUF",
     # tryceratops
     "TRY",
+    # pydocstyle
+    "D",
 ]
 ignore = [
     # LineTooLong
@@ -113,3 +120,11 @@ version_scheme = "semver2"
 version_provider = "uv"
 update_changelog_on_bump = true
 major_version_zero = true
+
+[tool.poe.tasks]
+regen = """datamodel-codegen --url http://localhost:3000/api/spec.json
+--input-file-type openapi
+--openapi-scopes schemas paths
+--output vigilator_py_sdk/models.py
+--allow-private-network
+"""
