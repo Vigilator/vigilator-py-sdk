@@ -21,11 +21,13 @@ If you are reporting a bug, please include:
 
 Look through the GitHub issues for bugs.
 Anything tagged with "bug" and "help wanted" is open to whoever wants to implement a fix for it.
+Be sure to let others know when you start working on an issue to ensure organisation.
 
 ## Implement Features
 
 Look through the GitHub issues for features.
 Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
+Be sure to let others know when you start working on an issue to ensure organisation.
 
 ## Write Documentation
 
