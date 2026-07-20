@@ -108,11 +108,12 @@ tox
 This requires you to have multiple versions of python installed.
 This step is also triggered in the CI/CD pipeline, so you could also choose to skip this step locally.
 
-10. Commit your changes and push your branch to GitHub:
+10. Commit your changes and push your branch to GitHub.
+    Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) standard (see the "Commit messages" section in `README.md`); they are validated by Commitizen at commit and push time:
 
 ```bash
 git add .
-git commit -m "Your detailed description of your changes."
+git commit -m "feat: your detailed description of your changes"
 git push origin name-of-your-bugfix-or-feature
 ```
 
