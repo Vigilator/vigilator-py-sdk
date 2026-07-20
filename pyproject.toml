@@ -105,4 +105,3 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["vigilator_py_sdk"]
-
