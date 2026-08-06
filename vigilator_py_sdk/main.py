@@ -82,7 +82,7 @@ class Client:
 
         """
         try:
-            response = self.client.post("/interrupts", json=interrupt.model_dump(mode="json", exclude_none=True))
+            response = self.client.post("api/interrupts", json=interrupt.model_dump(mode="json", exclude_none=True))
         except httpx.HTTPError as e:
             raise VigilatorConnectionError(str(e)) from e
         if response.is_success:
