@@ -17,7 +17,11 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["pydantic>=2.13.4"]
+dependencies = [
+    "httpx>=0.28.1",
+    "httpx-retries>=0.6.0",
+    "pydantic>=2.13.4",
+]
 
 [project.urls]
 Homepage = "https://vigilator.github.io/vigilator-py-sdk/"
@@ -48,6 +52,9 @@ packages = ["vigilator_py_sdk"]
 python = "./.venv"
 python-version = "3.10"
 
+[tool.ty.src]
+exclude = ["vigilator_py_sdk/models.py"] # As is auto generated
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
@@ -55,7 +62,7 @@ testpaths = ["tests"]
 target-version = "py310"
 line-length = 120
 fix = true
-extend-exclude = ["models.py"]
+extend-exclude = ["models.py"] # As is auto generated
 
 [tool.ruff.lint]
 select = [
@@ -92,6 +99,8 @@ select = [
     "TRY",
     # pydocstyle
     "D",
+    # pep8-naming
+    "N",
 ]
 ignore = [
     # LineTooLong
@@ -101,7 +110,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = ["S101", "TRY003"]
 
 [tool.ruff.format]
 preview = true
