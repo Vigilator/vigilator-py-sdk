@@ -7,15 +7,24 @@ import httpx
 import pytest
 
 from vigilator_py_sdk import (
+    ActionRequest,
+    AllowedDecision,
     APIError,
     Client,
     InterruptsPostRequest,
+    NotFoundError,
     UsageLimitError,
     VigilatorConnectionError,
     WorkspaceLimitError,
 )
 
-INTERRUPT = InterruptsPostRequest(title="Refund request", description="Agent wants to refund an order.")
+INTERRUPT = InterruptsPostRequest(
+    title="Refund request",
+    description="Agent wants to refund an order.",
+    actionRequests=[
+        ActionRequest(name="refund_order", allowedDecisions=[AllowedDecision.approve, AllowedDecision.reject])
+    ],
+)
 
 SUCCESS_BODY = {
     "id": "int_1",
@@ -26,6 +35,7 @@ SUCCESS_BODY = {
     "externalId": None,
     "title": "Refund request",
     "answered": False,
+    "answeredAt": None,
     "description": "Agent wants to refund an order.",
     "escalated": False,
     "assigneeId": None,
@@ -61,13 +71,14 @@ def test_create_interrupt_success():
     assert result.answered is False
 
     request = captured["request"]
-    assert request.url.path == "/interrupts"
+    assert request.url.path == "/api/interrupts"
     assert request.headers["x-api-key"] == "test-key"
     assert request.headers["content-type"] == "application/json"
     # Unset optional fields are omitted, not sent as nulls.
     assert json.loads(request.content) == {
         "title": "Refund request",
         "description": "Agent wants to refund an order.",
+        "actionRequests": [{"name": "refund_order", "allowedDecisions": ["approve", "reject"]}],
     }
 
 
@@ -124,6 +135,59 @@ def test_create_interrupt_unknown_error_body():
 
     assert exc_info.value.status == 500
     assert exc_info.value.code == "UNKNOWN"
+
+
+def test_get_interrupt_success():
+    """A 2xx response is validated into an InterruptsIdGetResponse."""
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["request"] = request
+        return httpx.Response(200, json=SUCCESS_BODY)
+
+    with make_client(handler) as client:
+        result = client.get_interrupt("int_1")
+
+    assert result.id == "int_1"
+    request = captured["request"]
+    assert request.method == "GET"
+    assert request.url.path == "/api/interrupts/int_1"
+    assert request.headers["x-api-key"] == "test-key"
+
+
+def test_get_interrupt_quotes_id():
+    """The interrupt id is percent-encoded so it cannot alter the request path."""
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["request"] = request
+        return httpx.Response(200, json=SUCCESS_BODY)
+
+    with make_client(handler) as client:
+        client.get_interrupt("a/b")
+
+    assert captured["request"].url.raw_path.endswith(b"/api/interrupts/a%2Fb")
+
+
+def test_get_interrupt_not_found():
+    """A 404 NOT_FOUND response raises NotFoundError."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            404,
+            json={
+                "defined": False,
+                "code": "NOT_FOUND",
+                "status": 404,
+                "message": "Interrupt not found.",
+            },
+        )
+
+    with make_client(handler) as client, pytest.raises(NotFoundError) as exc_info:
+        client.get_interrupt("missing")
+
+    assert exc_info.value.status == 404
+    assert exc_info.value.code == "NOT_FOUND"
 
 
 def test_create_interrupt_connection_error():

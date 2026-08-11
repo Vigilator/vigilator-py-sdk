@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from urllib.parse import quote
+
 import httpx
 from httpx_retries import Retry, RetryTransport
 
 from vigilator_py_sdk.exceptions import ERROR_CLASSES, APIError, VigilatorConnectionError
-from vigilator_py_sdk.models import InterruptsPostRequest, InterruptsPostResponse
+from vigilator_py_sdk.models import InterruptsIdGetResponse, InterruptsPostRequest, InterruptsPostResponse
 
 # POST is included so create_interrupt is retried too; retries only fire on
 # 429/502/503/504, where the request is normally not processed by the server.
@@ -87,6 +89,32 @@ class Client:
             raise VigilatorConnectionError(str(e)) from e
         if response.is_success:
             return InterruptsPostResponse.model_validate(response.json())
+        raise _error_from_response(response)
+
+    def get_interrupt(self, interrupt_id: str) -> InterruptsIdGetResponse:
+        """Fetch a single interrupt by id, including decisions on its action requests.
+
+        Poll this after opening an interrupt to learn the outcome: `answered`
+        flips true once every action request is decided.
+
+        Args:
+            interrupt_id: Id of the interrupt to fetch.
+
+        Returns:
+            The interrupt as returned by the API.
+
+        Raises:
+            APIError: The API responded with an error status code. A missing
+                interrupt raises the more specific NotFoundError subclass.
+            VigilatorConnectionError: The API could not be reached.
+
+        """
+        try:
+            response = self.client.get(f"api/interrupts/{quote(interrupt_id, safe='')}")
+        except httpx.HTTPError as e:
+            raise VigilatorConnectionError(str(e)) from e
+        if response.is_success:
+            return InterruptsIdGetResponse.model_validate(response.json())
         raise _error_from_response(response)
 
     def close(self) -> None:

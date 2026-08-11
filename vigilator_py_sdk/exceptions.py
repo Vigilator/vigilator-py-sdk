@@ -13,6 +13,15 @@ class VigilatorConnectionError(VigilatorError):
     """Raised when the API could not be reached (network failure, timeout, etc.)."""
 
 
+class WebhookVerificationError(VigilatorError):
+    """Raised when a webhook delivery cannot be verified.
+
+    Covers a malformed signing secret, missing or malformed Svix headers, a
+    timestamp outside the accepted tolerance, a signature mismatch, and a
+    verified body that is not valid JSON.
+    """
+
+
 class APIError(VigilatorError):
     """Raised when the API responds with an error status code.
 
@@ -49,9 +58,14 @@ class WorkspaceLimitError(APIError):
     """Raised on 403 WORKSPACE_LIMIT_REACHED: the workspace limit has been reached."""
 
 
+class NotFoundError(APIError):
+    """Raised on 404 NOT_FOUND: the requested resource does not exist."""
+
+
 ERROR_CLASSES: dict[str, type[APIError]] = {
     "USAGE_LIMIT_REACHED": UsageLimitError,
     "PLAN_REQUIRED": PlanRequiredError,
     "ADDON_REQUIRED": AddonRequiredError,
     "WORKSPACE_LIMIT_REACHED": WorkspaceLimitError,
+    "NOT_FOUND": NotFoundError,
 }
