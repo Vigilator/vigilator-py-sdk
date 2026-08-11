@@ -1,3 +1,13 @@
+## 0.3.0 (2026-08-11)
+
+### Feat
+
+- Add webhook support
+
+### Refactor
+
+- **Makefile,-Pyproject**: Remove poe and utilise makefile standard
+
 ## 0.2.0 (2026-08-06)
 
 ### BREAKING CHANGE
