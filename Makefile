@@ -37,6 +37,13 @@ publish: ## Publish a release to PyPI.
 
 .PHONY: build-and-publish
 build-and-publish: build publish ## Build and publish.
+.PHONY: regen
+regen:
+	datamodel-codegen --url http://localhost:3000/api/spec.json \
+	--input-file-type openapi \
+	--openapi-scopes schemas paths \
+	--output vigilator_py_sdk/models.py \
+	--allow-private-network
 
 .PHONY: help
 help:

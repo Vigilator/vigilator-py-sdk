@@ -38,7 +38,6 @@ dev = [
     "pytest-cov>=7.0.0",
     "ruff>=0.15.7",
     "datamodel-code-generator[http]>=0.69.0",
-    "poethepoet>=0.48.0",
 ]
 
 [build-system]
@@ -129,11 +128,3 @@ version_scheme = "semver2"
 version_provider = "uv"
 update_changelog_on_bump = true
 major_version_zero = true
-
-[tool.poe.tasks]
-regen = """datamodel-codegen --url http://localhost:3000/api/spec.json
---input-file-type openapi
---openapi-scopes schemas paths
---output vigilator_py_sdk/models.py
---allow-private-network
-"""

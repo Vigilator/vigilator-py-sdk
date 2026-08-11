@@ -85,4 +85,4 @@ While the project is on major version `0`, breaking changes bump the minor versi
 
 ## Generating Models
 
-To generate pydatnic models run ``poe regen``, expected that ``http://localhost:3000/api/spec.json`` is available. Use ``https://vigilator.ai/api/spec.json`` as alternative.
+To generate pydatnic models run ``make regen``, expected that ``http://localhost:3000/api/spec.json`` is available. Use ``https://vigilator.ai/api/spec.json`` as alternative.
