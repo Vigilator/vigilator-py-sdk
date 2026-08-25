@@ -1,6 +1,6 @@
 [project]
 name = "vigilator-py-sdk"
-version = "0.3.0"
+version = "0.4.0"
 description = "This is the SDK for the vigilator API."
 authors = [{ name = "Vigilator", email = "noah@vigilator.ai" }]
 readme = "README.md"

@@ -1,3 +1,9 @@
+## 0.4.0 (2026-08-25)
+
+### Feat
+
+- add sessions from live view
+
 ## 0.3.0 (2026-08-11)
 
 ### Feat
