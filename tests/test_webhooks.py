@@ -14,6 +14,10 @@ from vigilator_py_sdk import (
     InterruptAnsweredEvent,
     InterruptCreatedEvent,
     InterruptEscalatedEvent,
+    SessionActionEvent,
+    SessionEndedEvent,
+    SessionEndReason,
+    SessionStartedEvent,
     UnknownEvent,
     WebhookHandler,
     WebhookVerificationError,
@@ -75,6 +79,43 @@ ESCALATED_PAYLOAD = {
 }
 
 
+SESSION_STARTED_PAYLOAD = {
+    "type": "session.started",
+    "timestamp": "2025-09-10T08:00:00Z",
+    "data": {
+        "id": "3c9d2b7a-1f0e-4b6a-9d21-abcdefabcdef",
+        "externalId": "thread_42",
+        "name": "billing-agent",
+        "startedAt": "2025-09-10T08:00:00Z",
+    },
+}
+
+SESSION_ENDED_PAYLOAD = {
+    "type": "session.ended",
+    "timestamp": "2025-09-10T08:24:31Z",
+    "data": {
+        "id": "3c9d2b7a-1f0e-4b6a-9d21-abcdefabcdef",
+        "externalId": "thread_42",
+        "name": "billing-agent",
+        "startedAt": "2025-09-10T08:00:00Z",
+        "endedAt": "2025-09-10T08:24:31Z",
+        "reason": "agent",
+    },
+}
+
+SESSION_ACTION_PAYLOAD = {
+    "type": "session.action",
+    "timestamp": "2025-09-10T08:12:09Z",
+    "data": {
+        "id": "3c9d2b7a-1f0e-4b6a-9d21-abcdefabcdef",
+        "externalId": "thread_42",
+        "name": "billing-agent",
+        "action": "pause",
+        "triggeredBy": "Ada Lovelace",
+    },
+}
+
+
 def sign(
     body: bytes,
     secret: bytes = SECRET_BYTES,
@@ -126,6 +167,57 @@ def test_escalated_event_parsed():
 
     assert isinstance(event, InterruptEscalatedEvent)
     assert event.data.escalated is True
+
+
+def test_session_started_event_parsed():
+    """A signed session.started delivery parses into a typed event."""
+    body = encode(SESSION_STARTED_PAYLOAD)
+    event = WebhookHandler(SECRET).construct_event(body, sign(body))
+
+    assert isinstance(event, SessionStartedEvent)
+    assert event.data.external_id == "thread_42"
+    assert event.data.name == "billing-agent"
+    assert event.data.started_at.isoformat() == "2025-09-10T08:00:00+00:00"
+
+
+def test_session_ended_event_parsed():
+    """A signed session.ended delivery parses into a typed event with a typed reason."""
+    body = encode(SESSION_ENDED_PAYLOAD)
+    event = WebhookHandler(SECRET).construct_event(body, sign(body))
+
+    assert isinstance(event, SessionEndedEvent)
+    assert event.data.reason is SessionEndReason.agent
+    assert event.data.ended_at > event.data.started_at
+
+
+def test_session_action_event_parsed():
+    """A signed session.action delivery parses into a typed event."""
+    body = encode(SESSION_ACTION_PAYLOAD)
+    event = WebhookHandler(SECRET).construct_event(body, sign(body))
+
+    assert isinstance(event, SessionActionEvent)
+    assert event.data.action == "pause"
+    assert event.data.triggered_by == "Ada Lovelace"
+
+
+def test_session_events_dispatch():
+    """handle() routes each session event type to its own callbacks."""
+    webhooks = WebhookHandler(SECRET)
+    received = []
+
+    @webhooks.on("session.ended")
+    def on_ended(event: SessionEndedEvent) -> None:
+        received.append(event.data.reason)
+
+    @webhooks.on("session.action")
+    def on_action(event: SessionActionEvent) -> None:
+        received.append(event.data.action)
+
+    for payload in (SESSION_STARTED_PAYLOAD, SESSION_ENDED_PAYLOAD, SESSION_ACTION_PAYLOAD):
+        body = encode(payload)
+        webhooks.handle(body, sign(body))
+
+    assert received == [SessionEndReason.agent, "pause"]
 
 
 def test_secret_prefix_optional():

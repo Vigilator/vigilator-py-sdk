@@ -129,6 +129,73 @@ class InterruptEscalatedEvent(_PayloadModel):
     data: InterruptEscalatedData
 
 
+class SessionEndReason(str, Enum):
+    """Why a live session ended."""
+
+    agent = "agent"
+    """The agent ended the session itself (``Client.end_session``)."""
+    timeout = "timeout"
+    """The session went quiet past the organisation's session timeout and was closed automatically."""
+    manual = "manual"
+    """A watcher disconnected the session from Live View."""
+
+
+class _SessionData(_PayloadModel):
+    """Fields shared by every ``session.*`` payload."""
+
+    id: str
+    external_id: str | None
+    name: str
+    """The agent's self-declared name, e.g. ``"billing-agent"``."""
+
+
+class SessionStartedData(_SessionData):
+    """Payload of a ``session.started`` event."""
+
+    started_at: AwareDatetime
+
+
+class SessionStartedEvent(_PayloadModel):
+    """An agent registered a live session."""
+
+    type: Literal["session.started"]
+    timestamp: AwareDatetime
+    data: SessionStartedData
+
+
+class SessionEndedData(_SessionData):
+    """Payload of a ``session.ended`` event."""
+
+    started_at: AwareDatetime
+    ended_at: AwareDatetime
+    reason: SessionEndReason
+
+
+class SessionEndedEvent(_PayloadModel):
+    """A live session ended - by the agent, a watcher, or the session timeout."""
+
+    type: Literal["session.ended"]
+    timestamp: AwareDatetime
+    data: SessionEndedData
+
+
+class SessionActionData(_SessionData):
+    """Payload of a ``session.action`` event."""
+
+    action: str
+    """The custom action's name, as defined on the organisation's integrations page."""
+    triggered_by: str
+    """The member who fired the action from Live View."""
+
+
+class SessionActionEvent(_PayloadModel):
+    """A watcher fired a custom action against a live session."""
+
+    type: Literal["session.action"]
+    timestamp: AwareDatetime
+    data: SessionActionData
+
+
 class UnknownEvent(_PayloadModel):
     """A verified event whose type this SDK version does not know.
 
@@ -146,6 +213,9 @@ WebhookEvent = Union[  # noqa: UP007 - Union keeps the alias usable in isinstanc
     InterruptCreatedEvent,
     InterruptAnsweredEvent,
     InterruptEscalatedEvent,
+    SessionStartedEvent,
+    SessionEndedEvent,
+    SessionActionEvent,
     UnknownEvent,
 ]
 
@@ -153,6 +223,9 @@ _EVENT_MODELS: dict[str, type[WebhookEvent]] = {
     "interrupt.created": InterruptCreatedEvent,
     "interrupt.answered": InterruptAnsweredEvent,
     "interrupt.escalated": InterruptEscalatedEvent,
+    "session.started": SessionStartedEvent,
+    "session.ended": SessionEndedEvent,
+    "session.action": SessionActionEvent,
 }
 
 
